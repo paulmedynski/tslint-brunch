@@ -1,0 +1,7 @@
+{
+  "rules":
+  {
+    // Let's ban the 'eval' statement.
+    "ban": [true, "eval"]
+  }
+}

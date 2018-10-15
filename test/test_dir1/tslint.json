@@ -1,0 +1,10 @@
+{
+  "rules":
+  {
+    // The test plugin's base config has the no-console rule disabled, so let's
+    // turn it on here to see that this file overrides the base config.
+    //
+    // We ban only the 'log' stream.
+    "no-console": [true, "log"]
+  }
+}
