@@ -5,14 +5,21 @@
 
 'use strict';
 
+const debugMaker = require('debug');
+const debug = debugMaker('tslint-brunch');
+
+const path = require('path');
+
 // Use the real TSLint library, or our mock library if we're testing.
 let tslint;
 if (! process.env.hasOwnProperty('TEST'))
 {
+  debug('Using real TSLint library');
   tslint = require('tslint');
 }
 else
 {
+  debug('Using mock TSLint library');
   tslint = require('./test/MockTslint');
 }
 
@@ -26,6 +33,13 @@ class TSLinter
   //     An anymatcher that matches all TypeScript files that should
   //     be processed by the linter.  Defaults to the regex:
   //     /^app/.*\.ts$/ .
+  //
+  //   root:
+  //     The path at which to stop looking further back in the
+  //     directory ancestry for TSLint config files when linting.
+  //     This is analogous to ESLint's 'root' field in its config
+  //     options.  This would typically be set to the root of your
+  //     project.
   //
   //   config:
   //     Any options that may be found in tslint.json, in JavaScript
@@ -83,6 +97,9 @@ class TSLinter
     // the pattern supplied by the Brunch config, or use a typical
     // default.
     this.pattern = cfg.pattern || /^app\/.*\.ts$/;
+
+    // TODO: Make sure the root is a directory.
+    this.root = (cfg.root ? path.resolve(cfg.root) : path.set);
     
     // Our base config format matches the tslint.json form, only
     // it is in JavaScript object form.  This is the intermediate
@@ -136,29 +153,99 @@ class TSLinter
   // tslint.json configurations found by TSLint for the given file.
   // The base config is given the lowest priority.
   //
+  // Note that TSLint _doesn't_ recursively search up the given file's
+  // directory tree looking for configuration files.  This differs
+  // from other linters like ESLint.  We prefer the recrusive
+  // application of config, so this function will combine all configs
+  // found up the directory tree, with configuration "closer" to the
+  // file being linted taking precedence.
+  //
   // This returns a resolved Promise if linting was successful, and
   // returns a rejected Promise containing any results if linting
   // encountered errors.
   //
   lint(brunchFile)
   {
-    // Build the per-file lint configuration.
-    const fileConfig = tslint.Configuration.findConfiguration(
-      // Specify undefined for the config filename to tell TSLint to
-      // search for typical config files starting in the file's
-      // directory and working back up the tree.
-      undefined,
-      brunchFile.path);
+    const debugConfig = debugMaker('tslint-brunch:read-config');
     
-    // Merge the per-file config with a copy of our base config.
-    const mergedConfig = Object.assign({}, this.baseConfig);
-    tslint.Configuration.extendConfigurationFile(
-      mergedConfig, fileConfig.results);
+    // Make a copy of the base config to start with.
+    let mergedConfig = {};
+    mergedConfig.defaultSeverity = this.baseConfig.defaultSeverity;
+    mergedConfig.extends = Array.from(this.baseConfig.extends);
+    mergedConfig.jsRules = new Map(this.baseConfig.jsRules);
+    mergedConfig.rules = new Map(this.baseConfig.rules);
+    mergedConfig.rulesDirectory = Array.from(this.baseConfig.rulesDirectory);
+
+    // We expect the file being linted to live with our root.  If not,
+    // we won't apply any config but the base one.
+    const filePathAbs = path.resolve(brunchFile.path);
+    if (! filePathAbs.startsWith(this.root))
+    {
+      debugConfig(`File ${filePathAbs} doesn't live within root ${this.root}; `
+                  + 'using only base config');
+    }
+    else
+    {
+      // Strip our root off of the file's path, since we aren't going to
+      // look for configs any further up than the root.
+      let stripped = filePathAbs.slice(this.root.length);
+
+      // Split that into dir parts.
+      const split = stripped.split(path.sep);
+
+      // Start at the outermost dir part and read configs, merging as
+      // we work our way in to the innermost dir part.
+      let configPath = this.root;
+      for (const dirPart of split)
+      {
+        configPath += path.sep + dirPart;
+
+        debugConfig(`Working in dir ${configPath}`);
+        
+        // Determine the config filename for the current dir.
+        const configFile = tslint.Configuration.findConfigurationPath(
+          // Specify undefined for the config filename to tell TSLint to
+          // search for typical config files starting in the file's
+          // directory and working back up the tree.
+          undefined,
+          configPath);
+        
+        if (configFile !== undefined)
+        {
+          // Load it.
+          const loadedConfig =
+            tslint.Configuration.loadConfigurationFromPath(configFile);
+
+          debugConfig(`Loaded rules from ${configFile}:`);
+          for (const entry of loadedConfig.rules.entries())
+          {
+            debugConfig(`  ${JSON.stringify(entry)}`);
+          }
+          
+          // Merge it, giving ancestors less precedence as we go.
+          mergedConfig = tslint.Configuration.extendConfigurationFile(mergedConfig, loadedConfig);
+
+          debugConfig('Merged config rules:');
+          for (const entry of mergedConfig.rules.entries())
+          {
+            debugConfig(`  ${JSON.stringify(entry)}`);
+          }
+        }
+      }
+    }
+    
+    debugConfig('Final config rules:');
+    for (const entry of mergedConfig.rules.entries())
+    {
+      debugConfig(`  ${JSON.stringify(entry)}`);
+    }
 
     // Perform the linting.
     this.linter.lint(brunchFile.path, brunchFile.data, mergedConfig);
     const result = this.linter.getResult();
-    
+
+    //debug(`Lint result: ${JSON.stringify(result)}`);
+
     if (result.errorCount === 0)
     {
       return Promise.resolve(true);

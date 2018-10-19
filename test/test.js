@@ -11,6 +11,32 @@ const fs = require('fs');
 const path = require('path');
 const tslint = require('tslint');
 
+// Setup some paths and files for testing.  Some of the TSLint
+// functions used during testing expect real directories and files
+// to exist.  These files and directories are checked-in with the
+// source code so they should already exist.
+const dir1 = __dirname + path.sep + 'test_dir1';
+const dir2 = dir1 +  path.sep + 'test_dir2';
+// Linting tests use an imaginary source file, but building that
+// file's linting config requires some actual tslint.json files in a
+// directory hierarchy.
+const tslintJson1 = dir1 + path.sep + 'tslint.json';
+const tslintJson2 = dir2 + path.sep + 'tslint.json';
+
+// A function that returns true if the given file exists; false
+// otherwise.
+function fileExists(filePath)
+{
+  try
+  {
+    return fs.accessSync(filePath) === undefined;
+  }
+  catch (error)
+  {
+    return false;
+  }
+}
+
 // =======================================================================
 // Test with our MockTslint.
 
@@ -20,39 +46,15 @@ describe('plugin', () =>
   process.env.TEST = true;
   const Plugin = require('../plugin');
 
-  // Setup some paths and files for testing.  Some of the TSLint
-  // functions used during testing expect real directories and files
-  // to exist.  These files and directories are checked-in with the
-  // source code so they should already exist.
-  const dir1 = __dirname + path.sep + 'test_dir1';
-  const dir2 = dir1 +  path.sep + 'test_dir2';
-  // Linting tests use an imaginary source file, but building that
-  // file's linting config requires some actual tslint.json files in a
-  // directory hierarchy.
-  const tslintJson1 = dir1 + path.sep + 'tslint.json';
-  const tslintJson2 = dir2 + path.sep + 'tslint.json';
-  
   // ----------------------------------------------------------------------
   // Verify that our test directories and files exist.
 
   it('verify_test_dirs_and_files', () =>
   {
-    function check(path)
-    {
-      try
-      {
-	expect(fs.accessSync(path)).toEqual(undefined);
-      }
-      catch (error)
-      {
-	fail(`Test path ${path} does not exist: ${error}`);
-      }
-    }
-
-    check(dir1);
-    check(dir2);
-    check(tslintJson1);
-    check(tslintJson2);
+    expect(fileExists(dir1)).toEqual(true);
+    expect(fileExists(dir2)).toEqual(true);
+    expect(fileExists(tslintJson1)).toEqual(true);
+    expect(fileExists(tslintJson2)).toEqual(true);
   });
   
   // ----------------------------------------------------------------------
@@ -236,6 +238,7 @@ describe('plugin', () =>
     {
       const cfg =
       {
+        root: '../',
 	config:
 	{
 	  rules:
@@ -257,16 +260,7 @@ describe('plugin', () =>
     {
       // A file that doesn't exist, and has no tslint.json in its ancestry.
       const file = path.sep + 'tslint-brunch-not-a-file';
-      try
-      {
-	fs.accessSync(file);
-        fail(`Test file ${file} exists unexpectedly`);
-      }
-      catch (error)
-      {
-	expect(error.toString()).toEqual(
-          `Error: ENOENT: no such file or directory, access '${file}'`);
-      }
+      expect(fileExists(file)).toEqual(false);
       
       // Set the lint result to indicate no errors, and lint.
       plugin.linter.setResult(0, '');
@@ -277,9 +271,9 @@ describe('plugin', () =>
       expect(plugin.linter.fileContent).toEqual('');
       expect(plugin.linter.lintConfig).toEqual(
 	{
+          defaultSeverity: undefined,
 	  extends: [],
 	  jsRules: new Map(),
-	  linterOptions: {},
 	  rules: new Map(
 	    [
 	      ['no-console', {ruleArguments: [], ruleSeverity: 'off'}]
@@ -304,18 +298,37 @@ describe('plugin', () =>
 
     // Non-empty file data, and a real path that contains tslint.json
     // files.
-    it('data_known_path_with_tslint_json', () =>
+    it('data_known_path_with_tslint_json', async () =>
     {
-      plugin.linter.setResult(83, 'Full of problems!');
-      try
-      {
-        await plugin.lint({data: '', path: file});
-        fail('lint succeeded unexpectedly');
-      }
-      catch (error)
-      {
-        expect(error).toEqual('Full of problems!');
-      }
+      const file = dir2 + path.sep + 'file.js';
+      
+      // Set the lint result to indicate no errors, and lint.
+      plugin.linter.setResult(0, '');
+      const result = await plugin.lint(
+        {
+          data: 'const foo = false;',
+          path: file
+        });
+
+      expect(result).toEqual(true);
+      expect(plugin.linter.filePath).toEqual(file);
+      expect(plugin.linter.fileContent).toEqual('const foo = false;');
+      expect(plugin.linter.lintConfig).toEqual(
+	{
+	  extends: [],
+	  jsRules: new Map(),
+	  linterOptions: {},
+	  rules: new Map(
+	    [
+              // We expect the base config's rule for 'no-console' to
+              // be overridden by that in tslintJson1, and then again
+              // in tslintJson2.
+	      ['no-console', {ruleArguments: ['warn'], ruleSeverity: 'error'}],
+              // tslintJson2 specifies the 'ban' rule.
+              ['ban', {ruleArguments: ['eval'], ruleSeverity: 'error'}]
+	    ]),
+	  rulesDirectory: []
+        });
 
       return Promise.resolve();
     });
@@ -327,15 +340,23 @@ describe('plugin', () =>
 
 describe('real_tslint', () =>
 {
-  // Load the plugin and tell it to use the real TSLint.
+  // Load the plugin and let it use the real TSLint.
+  delete process.env.TEST;
+  // GOTCHA: The code in describe() blocks runs even when no tests
+  // within those blocks will execute, so the plugin has already been
+  // loaded and cached in TEST mode above.  We just explictly delete
+  // the plugin from the cache in order for it to be loaded again.
+  delete require.cache[require.resolve('../plugin')];
+  // Load our plugin module again.
   const Plugin = require('../plugin');
 
   // Non-empty file data, and a real path that contains tslint.json
   // files.
-  it('data_known_path_with_tslint_json', () =>
+  it('data_known_path_with_tslint_json', async () =>
   {
     const cfg =
     {
+      root: __dirname,
       config:
       {
         rules:
@@ -349,23 +370,32 @@ describe('real_tslint', () =>
       }
     };
 
-    plugin = new Plugin({plugins: {tslint: cfg}});
+    const plugin = new Plugin({plugins: {tslint: cfg}});
 
     // Setup file data that will fail the rules found in the test
     // tslint.json files.
     const data =
       "console.error('This is allowed');"
-      + "console.error('This is not allowed');"
+      + "console.warn('This is not allowed');"
       + "eval('This is not allowed');";
+
+    // GOTCHA: We can't actually specify a real file here or TSLint
+    // will read its contents even though we're supplying the
+    // content we want linted.  So we specify a non-existent file
+    // which apparently forces TSLint to use the given content.
+    const file = dir2 + '/not-a-file';
+    expect(fileExists(file)).toEqual(false);
 
     try
     {
-      await plugin.lint({data: '', path: file});
+      await plugin.lint({data: data, path: file});
       fail('lint succeeded unexpectedly');
     }
     catch (error)
     {
-      expect(error).toEqual('???');
+      expect(error).toEqual(
+        `\nERROR: ${file}[1, 34]: Calls to 'console.warn' are not allowed.\n`
+        + `ERROR: ${file}[1, 70]: Calls to 'eval' are not allowed.\n`);
     }
 
     return Promise.resolve();

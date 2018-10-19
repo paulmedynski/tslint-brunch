@@ -2,6 +2,9 @@
   "rules":
   {
     // Let's ban the 'eval' statement.
-    "ban": [true, "eval"]
+    "ban": [true, "eval"],
+
+    // Add the 'warn' stream to the disallowed list.
+    "no-console": [true, "warn"]
   }
 }
