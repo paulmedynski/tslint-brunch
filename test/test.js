@@ -153,13 +153,17 @@ describe('plugin', () =>
       expect(plugin.pattern).toEqual('foo');
       expect(plugin.baseConfig).toEqual(
 	{
-	  extends: ['tslint:recommended'],
-	  jsRules: new Map(),
+          // Extends has been emptied, and the rules it referred to are below
+          // in the jsRules and rules fields.  We don't bother to check each
+          // rule, since TSLint may change them over time.
+          extends: [],
+	  jsRules: plugin.baseConfig.jsRules,
 	  linterOptions: {},
-	  rules: new Map(),
+	  rules: plugin.baseConfig.rules,
 	  rulesDirectory: [dir1, dir2]
 	});
-
+      expect(plugin.baseConfig.rules.size).toBeGreaterThan(0);
+      
       expect(plugin.linter instanceof MockTslint.Linter).toEqual(true);
       expect(plugin.linter.options).toEqual(
 	{
@@ -197,20 +201,35 @@ describe('plugin', () =>
 
       const plugin = new Plugin({plugins: {tslint: cfg}});
       expect(plugin.pattern).toEqual('foo');
+
+      // The jsRules and rules from above will have been merged with those
+      // specified by the extends entries.
+      const expectedJsRules = new Map(
+	[
+	  ['rule1', {ruleArguments: undefined, ruleSeverity: 'error'}],
+	  ['rule2', {ruleArguments: undefined, ruleSeverity: 'error'}]
+	]);
+      for (const entry of plugin.baseConfig.jsRules.entries())
+      {
+        expectedJsRules.set(entry[0], entry[1]);
+      }
+
+      const expectedRules = new Map(
+	[
+	  ['rule1', {ruleArguments: undefined, ruleSeverity: 'error'}],
+	  ['rule2', {ruleArguments: undefined, ruleSeverity: 'error'}]
+	]);
+      for (const entry of plugin.baseConfig.rules.entries())
+      {
+        expectedRules.set(entry[0], entry[1]);
+      }
+      
       expect(plugin.baseConfig).toEqual(
 	{
-	  extends: ['tslint:recommended', 'tslint:latest'],
-	  jsRules: new Map(
-	    [
-	      ['rule1', {ruleArguments: undefined, ruleSeverity: 'error'}],
-	      ['rule2', {ruleArguments: undefined, ruleSeverity: 'error'}]
-	    ]),
+	  extends: [],
+	  jsRules: expectedJsRules,
 	  linterOptions: {},
-	  rules: new Map(
-	    [
-	      ['rule1', {ruleArguments: undefined, ruleSeverity: 'error'}],
-	      ['rule2', {ruleArguments: undefined, ruleSeverity: 'error'}]
-	    ]),
+	  rules: expectedRules,
 	  rulesDirectory: [dir1, dir2]
 	});
 
