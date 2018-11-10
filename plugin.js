@@ -37,8 +37,22 @@ class TSLinter
     // Advertise to Brunch the types of files we will lint.  Use
     // the pattern supplied by the Brunch config, or use a typical
     // default.
-    this.pattern = cfg.pattern || /^app\/.*\.ts$/;
-
+    if (cfg.hasOwnProperty('pattern'))
+    {
+      if (! (cfg.pattern instanceof RegExp))
+      {
+        this.pattern = new RegExp(cfg.pattern);
+      }
+      else
+      {
+        this.pattern = cfg.pattern;
+      }
+    }
+    else
+    {
+      this.pattern = /^app\/.*\.ts$/;
+    }
+    
     // Start with a root of '/'.
     this.root = path.sep;
     if (cfg.root)

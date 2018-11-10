@@ -133,6 +133,7 @@ describe('plugin', () =>
     {
       const cfg =
       {
+        // Pattern is a string, so it will be converted into a regex.
 	pattern: 'foo',
 	unknownKey: 'ignored',
 	config:
@@ -150,7 +151,7 @@ describe('plugin', () =>
       };
 
       const plugin = new Plugin({plugins: {tslint: cfg}});
-      expect(plugin.pattern).toEqual('foo');
+      expect(plugin.pattern).toEqual(/foo/);
       expect(plugin.baseConfig).toEqual(
 	{
           // Extends has been emptied, and the rules it referred to are below
@@ -180,7 +181,7 @@ describe('plugin', () =>
     {
       const cfg =
       {
-	pattern: 'foo',
+	pattern: /fo{2}/,
 	config:
 	{
 	  extends: ['tslint:recommended', 'tslint:latest'],
@@ -200,7 +201,7 @@ describe('plugin', () =>
       };
 
       const plugin = new Plugin({plugins: {tslint: cfg}});
-      expect(plugin.pattern).toEqual('foo');
+      expect(plugin.pattern).toEqual(/fo{2}/);
 
       // The jsRules and rules from above will have been merged with those
       // specified by the extends entries.

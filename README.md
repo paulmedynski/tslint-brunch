@@ -17,9 +17,9 @@ Add a `tslint` object to your Brunch config's `plugins` object:
 
 All options are optional.  The following options are supported:
 
-* `pattern` (`anymatcher`):
-  * An anymatcher that matches all TypeScript files that should be  
-    processed by the linter.  Defaults to the regex: `/^app/.*\.ts$/`.
+* `pattern` (`RegExp`):
+  * A regex that matches all TypeScript files that should be  
+    processed by the linter.  Defaults to: `/^app/.*\.ts$/`.
 * `root` (`string`):
   * The path at which to stop looking further back in the directory  
     ancestry for TSLint config files when linting.  This is analogous  
