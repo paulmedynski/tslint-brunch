@@ -16,6 +16,7 @@ class MockTslint
     this.filePath = undefined;
     this.fileContent = undefined;
     this.lintConfig = undefined;
+    this.failures = [];
     this.result = undefined;
   }
 

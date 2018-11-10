@@ -272,8 +272,20 @@ describe('plugin', () =>
       };
 
       plugin = new Plugin({plugins: {tslint: cfg}});
+
+      expect(plugin.linter.failures.length).toEqual(0);
+
+      // Add some failures to see that they are cleared before each lint().
+      plugin.linter.failures.push('Fail 1');
+      plugin.linter.failures.push('Fail 2');
     });
 
+    afterEach(() =>
+    {
+      // The linter's failures have been cleared.
+      expect(plugin.linter.failures.length).toEqual(0);
+    });
+    
     // Empty file data, and unknown path without any tslint.json present.
     it('empty_data_unknown_path_no_tslint_json', async () =>
     {

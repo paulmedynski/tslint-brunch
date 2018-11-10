@@ -182,6 +182,14 @@ class TSLinter
       }
     }
     
+    // Brunch lints one file at a time and tracks any failures per-file.  The
+    // TSLint Linter object tracks all failures across all lint() calls.  As
+    // such, we must clear the Linter's failures before each lint(), or we'll
+    // attribute all previous failures to this lint() and end up with an
+    // ever-growing list of failures.  This would confound Brunch's watcher
+    // mechanism, making it unable to re-compile a failed compilation.
+    this.linter.failures.length = 0;
+
     // Perform the linting.
     this.linter.lint(brunchFile.path, brunchFile.data, mergedConfig);
     const result = this.linter.getResult();
