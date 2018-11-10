@@ -4,7 +4,8 @@
   "description": "Adds TSLint support to Brunch.",
   "author":
   {
-    "name": "Paul Medynski"
+    "name": "Paul Medynski",
+    "email": "npm@healthybytes.ca"
   },
   "homepage": "https://github.com/paulmedynski/tslint-brunch",
   "repository":
