@@ -1,0 +1,22 @@
+{
+  "name": "tslint-brunch-test-app",
+  "description": "Test app for tslint-brunch",
+  "private": true,
+  "author": "tslint-brunch",
+  "version": "0.0.1",
+  "repository": "",
+  "dependencies": {
+    "@types/jasmine": "^2.8.9"
+  },
+  "devDependencies": {
+    "auto-reload-brunch": "^2",
+    "brunch": "^2.10.17",
+    "clean-css-brunch": "^2",
+    "debug": "^4.1.0",
+    "tslint": "^5.11.0",
+    "tslint-brunch": "file:../../",
+    "typescript": "^2.0.10",
+    "typescript-brunch": "^2.3.0",
+    "uglify-js-brunch": "^2"
+  }
+}
