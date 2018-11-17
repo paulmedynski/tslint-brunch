@@ -1,6 +1,10 @@
-# Dependency directories
+# NPM stuff
 node_modules/
+package-lock.json
 
 # Emacs temp files
 *~
 .#*
+
+# Brunch output
+test/test_app/public

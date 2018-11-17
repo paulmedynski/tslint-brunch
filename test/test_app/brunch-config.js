@@ -33,6 +33,10 @@ module.exports =
           'no-empty': false,
           'member-ordering': false
 	}
+      },
+      options:
+      {
+        formatter: 'verbose'
       }
     },
 
@@ -41,7 +45,7 @@ module.exports =
     // "compilerOptons" section.
     //
     // This config is duplicated in app/app-tsconfig.json for the command-line
-    // tslint tool to use.
+    // tsc and tslint tools to use.
     brunchTypescript:
     {
       target: 'ES2015',
