@@ -2,42 +2,35 @@
   "name": "tslint-brunch",
   "version": "0.9.2",
   "description": "Adds TSLint support to Brunch.",
-  "author":
-  {
+  "author": {
     "name": "Paul Medynski",
     "email": "npm@healthybytes.ca"
   },
   "homepage": "https://github.com/paulmedynski/tslint-brunch",
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "paulmedynski/tslint-brunch"
   },
-  "bugs":
-  {
+  "bugs": {
     "url": "https://github.com/paulmedynski/tslint-brunch/issues",
     "email": "tslint-brunch@healthybytes.ca"
   },
-  "keywords":
-  [
+  "keywords": [
     "tslint",
     "brunch"
   ],
   "license": "MIT",
   "main": "plugin.js",
-  "files":
-  [
+  "files": [
     "plugin.js"
   ],
-  "devDependencies":
-  {
+  "devDependencies": {
     "debug": "^4.1.0",
     "jasmine": "^3.2.0",
     "tslint": "^5.11.0",
     "typescript": "^3.1.0"
   },
-  "peerDependencies":
-  {
+  "peerDependencies": {
     "brunch": "^2",
     "tslint": "^5"
   }

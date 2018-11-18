@@ -69,6 +69,9 @@ describe('plugin', () =>
     expect(Plugin.prototype.hasOwnProperty('type')).toEqual(true);
     expect(typeof Plugin.prototype.type).toEqual('string');
     expect(Plugin.prototype.type).toEqual('javascript');
+    
+    expect(Plugin.prototype.hasOwnProperty('lint')).toEqual(true);
+    expect(typeof Plugin.prototype.lint).toEqual('function');
   });
   
   // ----------------------------------------------------------------------
