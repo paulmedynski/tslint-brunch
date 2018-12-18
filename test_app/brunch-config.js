@@ -3,7 +3,7 @@ module.exports =
 {
   // Disable OS notifications, since brunch will crash if you don't have the
   // correct OS notifier subsystem installed.
-  notifications: false,
+  //notifications: false,
 
   files:
   {

@@ -170,16 +170,13 @@ class TSLinter
       let configPath = this.root;
       for (const dirPart of split)
       {
-        // TODO: This doesn't work when the root is '/'.  It omits the root
-        // path from the search.
         configPath += path.sep + dirPart;
         const resolved = path.resolve(configPath);
         
         // Determine the config filename for the current dir.
         const configFile = tslint.Configuration.findConfigurationPath(
           // Specify undefined for the config filename to tell TSLint to
-          // search for typical config files starting in the file's
-          // directory and working back up the tree.
+          // search for typical config filenames within the resolved path.
           undefined,
           resolved);
         

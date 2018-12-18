@@ -6,7 +6,8 @@
   "version": "0.0.1",
   "repository": "",
   "dependencies": {
-    "@types/jasmine": "^2.8.9"
+    "@types/jasmine": "^2.8.12",
+    "native-notifier": "^0.1.2"
   },
   "devDependencies": {
     "auto-reload-brunch": "^2",
@@ -15,7 +16,7 @@
     "debug": "^4.1.0",
     "tslint": "^5.11.0",
     "tslint-brunch": "file:../",
-    "typescript": "^3",
+    "typescript": "^3.2.2",
     "typescript-brunch": "git://github.com/brunch/typescript-brunch.git#experimental-transpile",
     "uglify-js-brunch": "^2"
   }

@@ -4,6 +4,9 @@
 // Import some types from our sibling files.
 import Waiter, {RejectFunc, ResolveFunc} from './Waiter';
 
+This is jibberish.
+  x = x + 2354;
+
 // Create a Jasmine test suite.  This tests that the @types/jasmine
 // declarations cna be found and loaded by the TypeScript compiler when run
 // via typescript-brunch.
