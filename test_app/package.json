@@ -16,7 +16,7 @@
     "debug": "^4.1.0",
     "tslint": "^5.11.0",
     "tslint-brunch": "file:../",
-    "typescript": "^3.2.2",
+    "typescript": "^3.8.3",
     "typescript-brunch": "git://github.com/brunch/typescript-brunch.git#experimental-transpile",
     "uglify-js-brunch": "^2"
   }

@@ -1,6 +1,6 @@
 {
   "name": "tslint-brunch",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Adds TSLint support to Brunch.",
   "author": {
     "name": "Paul Medynski",
@@ -25,13 +25,13 @@
     "plugin.js"
   ],
   "devDependencies": {
-    "debug": "^4.1.0",
-    "jasmine": "^3.2.0",
-    "tslint": "^5.11.0",
-    "typescript": "^3.1.0"
+    "debug": "^4.1.1",
+    "jasmine": "^3.5.0",
+    "tslint": "^6.1.2",
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
-    "brunch": "^2",
-    "tslint": "^5"
+    "brunch": "^3",
+    "tslint": "^6"
   }
 }
